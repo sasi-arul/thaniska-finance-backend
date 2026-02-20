@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import connectDB from "./config/db.js";
 import loanRoutes from "./routes/loanRoutes.js";
 import collectionRoutes from "./routes/collectionRoutes.js";
@@ -20,6 +21,7 @@ app.use(cors({
   origin: "*"
 }));
 app.use(express.json());
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api", authMiddleware);

@@ -24,6 +24,25 @@ const loanSchema = new mongoose.Schema(
       type: Number,
     },
 
+    dateOfBirth: {
+      type: Date,
+    },
+
+    photoUrl: {
+      type: String,
+      trim: true,
+    },
+
+    proofUrl: {
+      type: String,
+      trim: true,
+    },
+
+    proofMimeType: {
+      type: String,
+      trim: true,
+    },
+
     occupation: {
       type: String,
       trim: true,

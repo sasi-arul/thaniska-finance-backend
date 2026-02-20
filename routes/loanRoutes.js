@@ -1,6 +1,9 @@
 import express from "express";
 import Loan from "../models/Loan.js";
 import Collection from "../models/Collection.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import {
   createLoan,
   getLoans,
@@ -10,6 +13,45 @@ import {
 } from "../controllers/loanController.js";
 
 const router = express.Router();
+const uploadsDir = path.join(process.cwd(), "uploads", "loans");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || "").toLowerCase();
+    const safeField = file.fieldname.replace(/[^a-zA-Z0-9_-]/g, "");
+    cb(null, `${safeField}-${Date.now()}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const mime = (file.mimetype || "").toLowerCase();
+
+    if (file.fieldname === "photo") {
+      if (mime.startsWith("image/")) return cb(null, true);
+      return cb(new Error("Photo must be an image file"));
+    }
+
+    if (file.fieldname === "proof") {
+      if (mime.startsWith("image/") || mime === "application/pdf") return cb(null, true);
+      return cb(new Error("Proof must be an image or PDF"));
+    }
+
+    return cb(new Error("Unexpected file field"));
+  },
+});
+
+const maybeUploadLoanFiles = (req, res, next) => {
+  const contentType = (req.headers["content-type"] || "").toLowerCase();
+  if (contentType.includes("multipart/form-data")) {
+    return upload.fields([{ name: "photo", maxCount: 1 }, { name: "proof", maxCount: 1 }])(req, res, next);
+  }
+  return next();
+};
 
 /* =======================
    LEDGER ROUTES (FIRST)
@@ -93,10 +135,10 @@ router.put("/collections/:id", async (req, res) => {
    LOAN CRUD ROUTES
 ======================= */
 
-router.post("/", createLoan);
+router.post("/", maybeUploadLoanFiles, createLoan);
 router.get("/", getLoans);
 router.get("/:id", getLoanById);   // 👈 keep this AFTER ledger
-router.put("/:id", updateLoan);
+router.put("/:id", maybeUploadLoanFiles, updateLoan);
 router.delete("/:id", deleteLoan);
 
 export default router;

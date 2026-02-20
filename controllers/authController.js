@@ -7,15 +7,22 @@ const getJwtSecret = () => process.env.JWT_SECRET || "thaniska_secret_key_123";
 const getDefaultAdminUsername = () => process.env.ADMIN_USERNAME || "admin";
 const getDefaultAdminPassword = () => process.env.ADMIN_PASSWORD || "admin123";
 
-const ensureDefaultAdmin = async () => {
-  const existing = await Admin.findOne();
-  if (existing) return;
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  const passwordHash = await bcrypt.hash(getDefaultAdminPassword(), 10);
-  await Admin.create({
-    username: getDefaultAdminUsername(),
-    passwordHash,
+const ensureDefaultAdmin = async () => {
+  const username = getDefaultAdminUsername().trim();
+  if (!username) return;
+
+  const existing = await Admin.findOne({
+    username: { $regex: new RegExp(`^${escapeRegex(username)}$`, "i") },
   });
+  if (!existing) {
+    const passwordHash = await bcrypt.hash(getDefaultAdminPassword(), 10);
+    await Admin.create({
+      username,
+      passwordHash,
+    });
+  }
 };
 
 export const login = async (req, res) => {
@@ -27,7 +34,10 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    const admin = await Admin.findOne({ username: username.trim() });
+    const normalizedUsername = username.trim();
+    const admin = await Admin.findOne({
+      username: { $regex: new RegExp(`^${escapeRegex(normalizedUsername)}$`, "i") },
+    });
     if (!admin) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
