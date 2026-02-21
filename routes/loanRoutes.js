@@ -13,6 +13,7 @@ import {
 } from "../controllers/loanController.js";
 
 const router = express.Router();
+
 const uploadsDir = path.join(process.cwd(), "uploads", "loans");
 fs.mkdirSync(uploadsDir, { recursive: true });
 

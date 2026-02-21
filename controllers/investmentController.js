@@ -6,6 +6,7 @@ const VALID_SOURCES = new Set([
   "reinvest_profit",
   "reinvest_collection_principal",
   "reinvest_collection_interest",
+  "reinvest_advance_interest_deduction",
 ]);
 
 const normalizeSource = (input) => {

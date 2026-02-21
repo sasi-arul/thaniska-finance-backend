@@ -16,6 +16,7 @@ export const getStats = async (req, res) => {
     let totalCollection = 0;
     let totalCollectionPrincipal = 0;
     let totalCollectionInterest = 0;
+    let totalAdvanceInterest = 0;
 
 
     // loans.forEach((loan) => {
@@ -71,6 +72,8 @@ export const getStats = async (req, res) => {
       pendingAmount += principal;
     }
   }
+
+  totalAdvanceInterest += Number(loan.advanceInterest || 0);
 });
 // ✅ TOTAL COLLECTION (sum of all collections)
 const collectionData = await Collection.aggregate([
@@ -132,6 +135,7 @@ if (collectionData.length > 0) {
       totalCollection: Math.round(totalCollection),
       totalCollectionPrincipal: Math.round(totalCollectionPrincipal),
       totalCollectionInterest: Math.round(totalCollectionInterest),
+      totalAdvanceInterest: Math.round(totalAdvanceInterest),
        totalExpense: Math.round(totalExpense),
        grossProfit: Math.round(grossProfit),
       netProfit: Math.round(netProfit),

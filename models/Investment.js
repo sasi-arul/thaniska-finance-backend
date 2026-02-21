@@ -14,6 +14,7 @@ const investmentSchema = new mongoose.Schema(
         "reinvest_profit",
         "reinvest_collection_principal",
         "reinvest_collection_interest",
+        "reinvest_advance_interest_deduction",
       ],
       default: "owner",
     },
